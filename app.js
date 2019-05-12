@@ -1,12 +1,15 @@
 const express = require('express')
+const path = require('path')
 const exphbs = require('express-handlebars')
+const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const cookieParser = require('cookie-parser')
 const session = require('express-session')
 const passport = require('passport')
 
-// Load User model
+// Load MongoDB models
 require('./models/User')
+require('./models/Story')
 
 // Passport config
 require('./config/passport')(passport)
@@ -14,6 +17,7 @@ require('./config/passport')(passport)
 // Load routes
 const auth = require('./routes/auth')
 const index = require('./routes/index')
+const stories = require('./routes/stories')
 
 // Load keys
 const keys = require('./config/keys')
@@ -25,6 +29,10 @@ mongoose
     .catch(err => console.log(err))
 
 const app = express();
+
+// Body-parser middleware
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
 
 // Handlebars middleware
 app.engine('handlebars', exphbs({
@@ -49,9 +57,13 @@ app.use((req, res, next) => {
     next()
 })
 
+// Set static folder
+app.use(express.static(path.join(__dirname, 'public')))
+
 // Use Routes
 app.use('/auth', auth)
 app.use('/', index)
+app.use('/stories', stories)
 
 const PORT = process.env.PORT || 5000;
 
